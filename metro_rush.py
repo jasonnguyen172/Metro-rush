@@ -118,12 +118,13 @@ def get_connecting_point(metrolines):
 class Node:
 
     def __init__(self, station_name, station_id, conn_pts=False):
-
         self.station_name = station_name
+        # a set contains tuples which are station ids of station
+        # exp: {(line1, id1), (line2, id2)}
         self.station_id = station_id
         self.conn_pts = conn_pts
 
-def get_node(metrolines):
+def set_node(metrolines):
     node_dict = {}
     for line in metrolines:
         for station in metrolines[line]:
@@ -140,13 +141,14 @@ def get_node(metrolines):
                 node_dict[station_name].station_id.update({(line, id)})
     return node_dict
 
+
 def main():
     file_name = get_file_name()
     lines = read_file(file_name)
     start, end, trains_number = get_data(lines)
     metrolines = get_metrolines(lines)
     # print(metrolines)
-    node_dict = get_node(metrolines)
+    node_dict = set_node(metrolines)
     print(len(node_dict))
     # print(node_dict['Pitam Pura'].station_id)
     conn_pts_dict = get_connecting_point(metrolines)
