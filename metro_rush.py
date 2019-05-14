@@ -115,36 +115,59 @@ def get_connecting_point(metrolines):
                     conn_pts_dict[line].append(station)
     return conn_pts_dict
 
-class Connect_pts:
+class Node:
 
-    def __init__(self, station_name, station_id, conn_pts):
-        self.station_id = station_id
+    def __init__(self, station_name, station_id, conn_pts=False):
+
         self.station_name = station_name
+        self.station_id = station_id
+        self.conn_pts = conn_pts
+
+def get_node(metrolines):
+    node_dict = {}
+    for line in metrolines:
+        for station in metrolines[line]:
+            if 'Conn' in station:
+                id, station_name, conn, link_line = station.split(':')
+                link_line = link_line[1:]
+                conn_pts = True
+            else:
+                id, station_name = station.split(':')
+                conn_pts = False
+            if station_name not in node_dict:
+                node_dict[station_name] = Node(station_name, {(line, id)}, conn_pts)
+            else:
+                node_dict[station_name].station_id.update({(line, id)})
+    return node_dict
 
 def main():
     file_name = get_file_name()
     lines = read_file(file_name)
     start, end, trains_number = get_data(lines)
     metrolines = get_metrolines(lines)
+    # print(metrolines)
+    node_dict = get_node(metrolines)
+    print(len(node_dict))
+    # print(node_dict['Pitam Pura'].station_id)
     conn_pts_dict = get_connecting_point(metrolines)
 
-    for line in conn_pts_dict:
-        for index, conn_pts in enumerate(conn_pts_dict[line]):
-            conn_pts_list = []
-            id, station_name, conn, link_line = conn_pts.split(':')
-            link_line = link_line[1:]
-            print(line)
-            print(conn_pts_dict[line])
-            print(link_line)
-            print(conn_pts_dict[link_line])
-            if index == len(conn_pts_dict[line]) - 1:
-                conn_pts_list += [conn_pts_dict[line][index-1]]
-            elif index == 0:
-                conn_pts_list += [conn_pts_dict[line][index+1]]
-            else:
-                conn_pts_list += [conn_pts_dict[line][index-1],conn_pts_dict[line][index+1]]
-            print('dsssssssssssssssssssssssssssssssssssssssssssss')
-            print(conn_pts_list)
+    # for line in conn_pts_dict:
+    #     for index, conn_pts in enumerate(conn_pts_dict[line]):
+    #         conn_pts_list = []
+    #         id, station_name, conn, link_line = conn_pts.split(':')
+    #         link_line = link_line[1:]
+    #         print(line)
+    #         print(conn_pts_dict[line])
+    #         print(link_line)
+    #         print(conn_pts_dict[link_line])
+    #         if index == len(conn_pts_dict[line]) - 1:
+    #             conn_pts_list += [conn_pts_dict[line][index-1]]
+    #         elif index == 0:
+    #             conn_pts_list += [conn_pts_dict[line][index+1]]
+    #         else:
+    #             conn_pts_list += [conn_pts_dict[line][index-1],conn_pts_dict[line][index+1]]
+    #         print('dsssssssssssssssssssssssssssssssssssssssssssss')
+    #         print(conn_pts_list)
             # for station in conn_pts_dict[link_line]:
                 # print(station)
             # if station_name n?ot in dict:
