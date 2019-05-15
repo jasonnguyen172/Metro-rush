@@ -7,7 +7,8 @@ from re import match
 class Graph:
 
     def __init__(self, metrolines, start, end):
-        self.nodes = set_nodes(metrolines) # {name:{line:id}}
+        #start(line, id)
+        self.nodes = set_nodes(metrolines)  # {name:{line:id}}
         ################
         self.start_node = self.get_start_end_nodes(start)
         self.end_node = self.get_start_end_nodes(end)
@@ -15,6 +16,7 @@ class Graph:
 
 
     def get_start_end_nodes(self, node):
+        print(node)
         for key in self.nodes:
             for sub_key in self.nodes[key].station_id:
                 if sub_key == node[0] and self.nodes[key].station_id[sub_key] == node[1]:
@@ -29,18 +31,17 @@ class Graph:
 
     def find_neigbours(self, node, metrolines):
         neigbour = []
-        print(node.station_name)
-        for line in metrolines:
+        for line in node.station_id:
             tempo = []
             for station in metrolines[line]:
-                if ":Conn:" in station and line in node.station_id.keys() and station not in tempo:
+                if ":Conn:" in station:
                     tempo.append(station)
                     for index, j in enumerate(tempo):
                         try:
-                            if node.station_name in j and index != 0 and j not in neigbour:
+                            if node.station_name in j and index != 0:
                                 neigbour.append(tempo[index - 1])
                                 neigbour.append(tempo[index + 1])
-                            elif node.station_name in j and index == 0 and j not in neigbour:
+                            elif node.station_name in j and index == 0:
                                 neigbour.append(tempo[index + 1])
                         except:
                             pass
@@ -62,15 +63,12 @@ class Node:
         self.neigbours = None
 
 
-
-
-
 def get_metrolines(lines):
     metrolines = {}
     metroline = None
     for index, line in enumerate(lines):
         if line.startswith("#"):
-            metroline = line.replace("#","")
+            metroline = line.replace("#", "")
             metrolines[metroline] = []
         elif not line.startswith("START=") and not line.startswith("END=") and not line.startswith("TRAINS") and line:
             metrolines[metroline].append(line)
@@ -170,8 +168,9 @@ def main():
     station1 = graph.nodes['Kashmere Gate']
     station2 = graph.nodes['Mandi House']
     # print(get_edge(station1, station2))
-    print(metrolines)
-    print(graph.nodes['Central Secretariat'].neigbours)
+    # print(metrolines)
+    graph.abc(metrolines)
+    print(graph.nodes['Kashmere Gate'].neigbours)
 
     #print([node.station_name for node in find_neigbours_conn_pts(station1, graph.nodes.values())])
     # print(graph.get_edge())
