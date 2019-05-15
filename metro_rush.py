@@ -10,39 +10,39 @@ class Graph:
 
     def __init__(self, metrolines, start, end):
         self.nodes = set_nodes(metrolines, start, end)  # {line:{station:node}}
-        self.start_node = self.nodes[start[0]][start[1]]
-        self.end_node = self.nodes[end[0]][end[1]]
+        # self.start_node = self.nodes[]
+        # self.end_node = self.nodes[]
 
     def find_way():
         way = None
         return way
 
 
-def get_station_data(limitation, metroline, station, start, end):
-    interchange = [metroline]
-    station_id = station.split(":")[0]
-    station_name = station.split(":")[1]
-    if ":Conn:" in station:
-        interchange += station.split(":Conn: ")[1:]
-    if (metroline == start[0] and station_id == start[1]) or\
-            (metroline == end[0] and station_id == end[1]):
-        limitation = False
-
-    return station_id, limitation, interchange, station_name
-
-
-def set_nodes(metrolines, start, end):
-    nodes = {}
-    interchange = []
-    for metroline in metrolines:
-        for station in metrolines[metroline]:
-            station_id, limitation, interchange, station_name = get_station_data(True, metroline, station, start, end)
-            node = Node(station_id, limitation, interchange, station_name)
-            if metroline not in nodes:
-                nodes[metroline] = {station_id: node}
-            else:
-                nodes[metroline].update({station_id: node})
-    return nodes
+# def get_station_data(limitation, metroline, station, start, end):
+#     interchange = [metroline]
+#     station_id = station.split(":")[0]
+#     station_name = station.split(":")[1]
+#     if ":Conn:" in station:
+#         interchange += station.split(":Conn: ")[1:]
+#     if (metroline == start[0] and station_id == start[1]) or\
+#             (metroline == end[0] and station_id == end[1]):
+#         limitation = False
+#
+#     return station_id, limitation, interchange, station_name
+#
+#
+# def set_nodes(metrolines, start, end):
+#     nodes = {}
+#     interchange = []
+#     for metroline in metrolines:
+#         for station in metrolines[metroline]:
+#             station_id, limitation, interchange, station_name = get_station_data(True, metroline, station, start, end)
+#             node = Node(station_id, limitation, interchange, station_name)
+#             if metroline not in nodes:
+#                 nodes[metroline] = {station_id: node}
+#             else:
+#                 nodes[metroline].update({station_id: node})
+#     return nodes
 
 
 def get_metrolines(lines):
@@ -104,23 +104,12 @@ def get_file_name():
     return args.file_name
 
 
-def get_connecting_point(metrolines):
-    conn_pts_dict = {}
-    for line in metrolines:
-        for station in metrolines[line]:
-            if 'Conn' in station:
-                if line not in conn_pts_dict:
-                    conn_pts_dict[line] = [station]
-                else:
-                    conn_pts_dict[line].append(station)
-    return conn_pts_dict
-
 class Node:
 
     def __init__(self, station_name, station_id, conn_pts=False):
         self.station_name = station_name
-        # a set contains tuples which are station ids of station
-        # exp: {(line1, id1), (line2, id2)}
+        # a dict contains tuples which are station ids of station
+        # exp: {(line1: id1), (line2: id2)}
         self.station_id = station_id
         self.conn_pts = conn_pts
 
@@ -136,9 +125,9 @@ def set_node(metrolines):
                 id, station_name = station.split(':')
                 conn_pts = False
             if station_name not in node_dict:
-                node_dict[station_name] = Node(station_name, {(line, id)}, conn_pts)
+                node_dict[station_name] = Node(station_name, {line: id}, conn_pts)
             else:
-                node_dict[station_name].station_id.update({(line, id)})
+                node_dict[station_name].station_id[line] = id
     return node_dict
 
 
@@ -147,11 +136,11 @@ def main():
     lines = read_file(file_name)
     start, end, trains_number = get_data(lines)
     metrolines = get_metrolines(lines)
-    # print(metrolines)
+    print(metrolines)
     node_dict = set_node(metrolines)
-    print(len(node_dict))
-    # print(node_dict['Pitam Pura'].station_id)
-    conn_pts_dict = get_connecting_point(metrolines)
+    # print((node_dict))
+    # print(node_dict['Pragati Maidan'].conn_pts)
+
 
     # for line in conn_pts_dict:
     #     for index, conn_pts in enumerate(conn_pts_dict[line]):
