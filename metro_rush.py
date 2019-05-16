@@ -4,65 +4,55 @@ from sys import stderr
 from re import match
 
 
+class Node:
+
+    def __init__(self, station_name, station_id, metrolines, connected=False):
+        self.station_name = station_name
+        # a dict with key= line and value= ID
+        # exp: {line1: id1, line2: id2}
+        self.station_id = station_id
+        #########################
+        self.connected = connected
+        #########################
+        self.neihgbours = None
+
+
 class Graph:
 
     def __init__(self, metrolines, start, end):
         self.nodes = set_nodes(metrolines) # {name:{line:id}}
-        ################
         self.start_node = self.get_start_end_nodes(start)
         self.end_node = self.get_start_end_nodes(end)
-        ################
-
 
     def get_start_end_nodes(self, node):
         for key in self.nodes:
             for sub_key in self.nodes[key].station_id:
                 if sub_key == node[0] and self.nodes[key].station_id[sub_key] == node[1]:
                     return self.nodes[key]
-
-
-    def abc(self, metrolines):
+    ########################
+    def filter_connected_points(self, metrolines):
         for key in self.nodes:
-            if self.nodes[key].conn_pts:
-                self.find_neigbours(self.nodes[key], metrolines)
+            if self.nodes[key].connected:
+                self.find_neihgbours(self.nodes[key], metrolines)
 
-
-    def find_neigbours(self, node, metrolines):
-        neigbour = []
-        print(node.station_name)
-        for line in metrolines:
+    def find_neihgbours(self, node, metrolines):
+        neihgbours = []
+        for line in node.station_id:
             tempo = []
             for station in metrolines[line]:
-                if ":Conn:" in station and line in node.station_id.keys() and station not in tempo:
+                if ":Conn:" in station and line in node.station_id.keys():
                     tempo.append(station)
-                    for index, j in enumerate(tempo):
+                    for index, element in enumerate(tempo):
                         try:
-                            if node.station_name in j and index != 0 and j not in neigbour:
-                                neigbour.append(tempo[index - 1])
-                                neigbour.append(tempo[index + 1])
-                            elif node.station_name in j and index == 0 and j not in neigbour:
-                                neigbour.append(tempo[index + 1])
+                            if node.station_name in element and index != 0:
+                                neihgbours.append(self.nodes[tempo[index - 1].split(':')[1]])
+                                neihgbours.append(self.nodes[tempo[index + 1].split(':')[1]])
+                            elif node.station_name in element and index == 0:
+                                neihgbours.append(self.nodes[tempo[index + 1].split(':')[1]])
                         except:
                             pass
-        node.neigbours = list(set(neigbour))
-
-    ################
-    def find_way():
-        way = None
-        return way
-
-class Node:
-
-    def __init__(self, station_name, station_id, metrolines, conn_pts=False):
-        self.station_name = station_name
-        # a dict contains tuples which are station ids of station
-        # exp: {(line1: id1), (line2: id2)}
-        self.station_id = station_id
-        self.conn_pts = conn_pts
-        self.neigbours = None
-
-
-
+        node.neihgbours = list(set(neihgbours))
+    ########################
 
 
 def get_metrolines(lines):
@@ -131,25 +121,25 @@ def set_nodes(metrolines):
             if 'Conn' in station:
                 id, station_name, conn, link_line = station.split(':')
                 link_line = link_line[1:]
-                conn_pts = True
+                connected = True
             else:
                 id, station_name = station.split(':')
-                conn_pts = False
+                connected = False
             if station_name not in node_dict:
                 node_dict[station_name] = Node(station_name,
-                                               {line: id}, metrolines, conn_pts)
+                                               {line: id}, metrolines, connected)
             else:
                 node_dict[station_name].station_id[line] = id
     return node_dict
 
 
-def find_neigbours_conn_pts(src_node, nodes_list):
+def find_neihgbours_connected(src_node, nodes_list):
     print(src_node.station_id.keys())
-    neigbours_list = []
+    neihgbours_list = []
     for node in nodes_list:
-        if node.conn_pts is True and get_edge(src_node, node) is not None:
-            neigbours_list += [node]
-    return neigbours_list
+        if node.connected is True and get_edge(src_node, node) is not None:
+            neihgbours_list += [node]
+    return neihgbours_list
 
 
 def get_edge(src_conn_node, dest_conn_node):
@@ -157,59 +147,17 @@ def get_edge(src_conn_node, dest_conn_node):
         if line in dest_conn_node.station_id:
             return abs(int(src_conn_node.station_id[line]) - int(dest_conn_node.station_id[line]))
 
+
 def main():
     file_name = get_file_name()
     lines = read_file(file_name)
     start, end, trains_number = get_data(lines)
     metrolines = get_metrolines(lines)
-    ################
     graph = Graph(metrolines, start, end)
-    #################
-    # print(graph.start_node)
-    # print(graph.end_node)
-    station1 = graph.nodes['Kashmere Gate']
-    station2 = graph.nodes['Mandi House']
-    # print(get_edge(station1, station2))
-    print(metrolines)
-    print(graph.nodes['Central Secretariat'].neigbours)
-
-    #print([node.station_name for node in find_neigbours_conn_pts(station1, graph.nodes.values())])
-    # print(graph.get_edge())
-    #print(graph.get_start_end_nodes(start, end))
-
-    # print((node_dict))
-    # print(node_dict['Pragati Maidan'].conn_pts)
-
-
-    # for line in conn_pts_dict:
-    #     for index, conn_pts in enumerate(conn_pts_dict[line]):
-    #         conn_pts_list = []
-    #         id, station_name, conn, link_line = conn_pts.split(':')
-    #         link_line = link_line[1:]
-    #         print(line)
-    #         print(conn_pts_dict[line])
-    #         print(link_line)
-    #         print(conn_pts_dict[link_line])
-    #         if index == len(conn_pts_dict[line]) - 1:
-    #             conn_pts_list += [conn_pts_dict[line][index-1]]
-    #         elif index == 0:
-    #             conn_pts_list += [conn_pts_dict[line][index+1]]
-    #         else:
-    #             conn_pts_list += [conn_pts_dict[line][index-1],conn_pts_dict[line][index+1]]
-    #         print('dsssssssssssssssssssssssssssssssssssssssssssss')
-    #         print(conn_pts_list)
-            # for station in conn_pts_dict[link_line]:
-                # print(station)
-            # if station_name n?ot in dict:
-                # dict[station_name] =
-
-    #     print(conn_pts.split(': ')[-1])
-        # print(conn_pts[line+2:])
-    # print(metrolines)
-
-    # print(*{line: metrolines[line] for line in metrolines}.items(), sep='\n\n')
-    # graph = Graph(metrolines, start, end)
-    # print(graph.nodes)
+    ###########
+    graph.filter_connected_points(metrolines)
+    ###########
+    print(graph.nodes['Central Secretariat'].neihgbours)
 
 
 if __name__ == "__main__":
