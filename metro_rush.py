@@ -25,6 +25,7 @@ class Graph:
         self.end_node = self.get_start_end_nodes(end)
 
     def get_start_end_nodes(self, node):
+        print(node)
         for key in self.nodes:
             for sub_key in self.nodes[key].station_id:
                 if sub_key == node[0] and self.nodes[key].station_id[sub_key] == node[1]:
@@ -42,16 +43,16 @@ class Graph:
             for station in metrolines[line]:
                 if ":Conn:" in station and line in node.station_id.keys():
                     tempo.append(station)
-                    for index, element in enumerate(tempo):
-                        try:
-                            if node.station_name in element and index != 0:
-                                neihgbours.append(self.nodes[tempo[index - 1].split(':')[1]])
-                                neihgbours.append(self.nodes[tempo[index + 1].split(':')[1]])
-                            elif node.station_name in element and index == 0:
-                                neihgbours.append(self.nodes[tempo[index + 1].split(':')[1]])
-                        except:
-                            pass
-        node.neihgbours = list(set(neihgbours))
+            for index, element in enumerate(tempo):
+                try:
+                    if node.station_name in element and index != 0:
+                        neihgbours.append(self.nodes[tempo[index - 1].split(':')[1]])
+                        neihgbours.append(self.nodes[tempo[index + 1].split(':')[1]])
+                    elif node.station_name in element and index == 0:
+                        neihgbours.append(self.nodes[tempo[index + 1].split(':')[1]])
+                except:
+                    pass
+        node.neihgbours = neihgbours
     ########################
 
 
@@ -60,7 +61,7 @@ def get_metrolines(lines):
     metroline = None
     for index, line in enumerate(lines):
         if line.startswith("#"):
-            metroline = line.replace("#","")
+            metroline = line.replace("#", "")
             metrolines[metroline] = []
         elif not line.startswith("START=") and not line.startswith("END=") and not line.startswith("TRAINS") and line:
             metrolines[metroline].append(line)
