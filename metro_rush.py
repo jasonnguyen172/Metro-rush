@@ -15,6 +15,7 @@ def main():
     ###########
     # print('aaa')
     print([nei.station_name for nei in graph.nodes_dict['Netaji Subhash Place'].neihgbours])
+    print(get_edge(graph.end_node, graph.nodes_dict['Botanical Garden']))
     # print([nei.station_name for nei in graph.start_node.neihgbours])
     # print(graph.end_node.neihgbours)
     # print(find_name_of_station(metrolines, ('Magenta Line', '19')))
