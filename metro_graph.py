@@ -34,7 +34,8 @@ class Graph:
         for line in node.station_id:
             tempo = []
             for station in metrolines[line]:
-                if ":Conn:" in station and line in node.station_id.keys():
+                if "Conn" in station or station.split(':')[1] in\
+                 [self.start_node.station_name, self.end_node.station_name]:
                     tempo.append(station)
             for index, element in enumerate(tempo):
                 try:

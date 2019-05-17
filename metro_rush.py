@@ -14,7 +14,7 @@ def main():
     graph.filter_connected_points(metrolines)
     ###########
     # print('aaa')
-    # print([nei.station_name for nei in graph.nodes_dict['Mandi House'].neihgbours])
+    print([nei.station_name for nei in graph.nodes_dict['Netaji Subhash Place'].neihgbours])
     # print([nei.station_name for nei in graph.start_node.neihgbours])
     # print(graph.end_node.neihgbours)
     # print(find_name_of_station(metrolines, ('Magenta Line', '19')))
