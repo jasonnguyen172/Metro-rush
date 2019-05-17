@@ -11,7 +11,9 @@ def get_metrolines(lines):
         if line.startswith("#"):
             metroline = line.replace("#", "")
             metrolines[metroline] = []
-        elif not line.startswith("START=") and not line.startswith("END=") and not line.startswith("TRAINS") and line:
+        elif not line.startswith("START=") and\
+                not line.startswith("END=") and\
+                not line.startswith("TRAINS") and line:
             metrolines[metroline].append(line)
     return metrolines
 
@@ -63,23 +65,70 @@ def get_file_name():
     return args.file_name
 
 
+def get_node_info(info_line):
+    '''
+    Get information of node from the info_line
+    @param info_line: a text line contains info of station
+    @return: id - index of station
+             node_name - name of station
+             connected - boolen value, True if the station is connecting point
+    '''
+    conn, link_line, connected = None, None, True
+    if 'Conn' in info_line:
+        id, node_name, conn, link_line = info_line.split(':')
+    else:
+        id, node_name = info_line.split(':')
+        connected = False
+    return id, node_name, connected
+
+
+def set_node_info(node_dict, line, id, node_name, connected):
+    '''
+    Setting attributes for one node of station
+    @param node_dict: a dictionary contains all of node which formed:
+                      {station_name: station_node_object}
+    @param line: line name of station
+    @param id: id - index of station
+    @param node_name: name of station
+    @param connected: boolen value, True if the station is connecting point
+    @return: None
+    '''
+    if node_name not in node_dict:
+        node_dict[node_name] = Node(node_name, {line: id}, connected)
+    else:
+        node_dict[node_name].station_id[line] = id
+
+
 def set_nodes(metrolines):
+    '''
+    Setting attributes for all nodes of station
+    @param metrolines: a dictionary contains all of info of stations and lines
+                       which formed:
+                       {text of line name: text of station info}
+    @return: node_dict - a dictionary contains all of node which formed:
+                         {text of station name: station_node_object}
+    '''
     node_dict = {}
     for line in metrolines:
-        for station in metrolines[line]:
-            if 'Conn' in station:
-                id, station_name, conn, link_line = station.split(':')
-                link_line = link_line[1:]
-                connected = True
-            else:
-                id, station_name = station.split(':')
-                connected = False
-            if station_name not in node_dict:
-                node_dict[station_name] = Node(station_name,
-                                               {line: id}, metrolines, connected)
-            else:
-                node_dict[station_name].station_id[line] = id
+        for info_line in metrolines[line]:
+            id, node_name, connected = get_node_info(info_line)
+            set_node_info(node_dict, line, id, node_name, connected)
     return node_dict
+
+
+def find_name_of_station(metrolines, position):
+    '''
+    finding name of a station base on position information
+    @param metrolines: a dictionary contains all of info of stations and lines
+                       which formed:
+                       {text of line name: text of station info}
+    @param position: a tuple contains all of info of a station which formed:
+                       (text of line name, text of station id)
+    '''
+    line, id = position
+    for info_line in metrolines[line]:
+        if id == info_line.split(':')[0]:
+            return info_line.split(':')[1]
 
 
 def find_neihgbours_connected(src_node, nodes_list):
