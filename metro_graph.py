@@ -25,9 +25,9 @@ class Graph:
 
     ########################
     def filter_connected_points(self, metrolines):
-        for key in self.nodes_dict:
-            if self.nodes_dict[key].connected:
-                self.find_neihgbours(self.nodes_dict[key], metrolines)
+        for line_name in self.nodes_dict:
+            if self.nodes_dict[line_name].connected:
+                self.find_neihgbours(self.nodes_dict[line_name], metrolines)
 
     def find_neihgbours(self, node, metrolines):
         neihgbours = []

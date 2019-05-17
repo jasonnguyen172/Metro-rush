@@ -65,23 +65,6 @@ def get_file_name():
     return args.file_name
 
 
-def get_node_info(info_line):
-    '''
-    Get information of node from the info_line
-    @param info_line: a text line contains info of station
-    @return: id - index of station
-             node_name - name of station
-             connected - boolen value, True if the station is connecting point
-    '''
-    conn, link_line, connected = None, None, True
-    if 'Conn' in info_line:
-        id, node_name, conn, link_line = info_line.split(':')
-    else:
-        id, node_name = info_line.split(':')
-        connected = False
-    return id, node_name, connected
-
-
 def set_node_info(node_dict, line, id, node_name, connected):
     '''
     Setting attributes for one node of station
@@ -99,6 +82,24 @@ def set_node_info(node_dict, line, id, node_name, connected):
         node_dict[node_name].station_id[line] = id
 
 
+def get_node_info(info_line):
+    '''
+    Get information of node from the info_line
+    @param info_line: a text line contains info of station
+    @return: id - index of station
+             node_name - name of station
+             connected - boolen value, True if the station is connecting point
+    '''
+    conn, link_line, connected = None, None, True
+    if 'Conn' in info_line:
+        id, node_name, conn, link_line = info_line.split(':')
+        link_line = link_line[1:]
+    else:
+        id, node_name = info_line.split(':')
+        connected = False
+    return int(id), node_name, link_line, connected
+
+
 def set_nodes(metrolines):
     '''
     Setting attributes for all nodes of station
@@ -111,7 +112,7 @@ def set_nodes(metrolines):
     node_dict = {}
     for line in metrolines:
         for info_line in metrolines[line]:
-            id, node_name, connected = get_node_info(info_line)
+            id, node_name, link_line, connected = get_node_info(info_line)
             set_node_info(node_dict, line, id, node_name, connected)
     return node_dict
 
@@ -129,6 +130,33 @@ def find_name_of_station(metrolines, position):
     for info_line in metrolines[line]:
         if id == info_line.split(':')[0]:
             return info_line.split(':')[1]
+
+
+def get_conn_pts_dict(metrolines):
+    '''
+    Create a dictionary of connecting points
+    '''
+    conn_point_dict = {}
+    for line_name in metrolines:
+        conn_point_dict[line_name] = []
+        for text_line in metrolines[line_name]:
+            conn_point_dict[line_name] += [text_line] \
+             if 'Conn' in text_line else []
+    return conn_point_dict
+
+
+def find_neihgbours(metrolines):
+    '''
+    @param metrolines: a dictionary contains all of info of stations and lines
+                       which formed:
+                       {text of line name: text of station info}
+    '''
+    conn_point_dict = get_conn_pts_dict(metrolines)
+    neihgbours_dict = {}
+    for line_name in conn_point_dict:
+        for text_line in conn_point_dict[line_name]:
+            id, node_name, link_line, connected = get_node_info(text_line)
+            print(id, node_name, link_line, connected, sep=':')
 
 
 def find_neihgbours_connected(src_node, nodes_list):
