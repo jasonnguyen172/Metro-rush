@@ -9,7 +9,7 @@ def implement_bfs(start_node, end_node):
         if not new_nodes_list:
             continue
         for new_node in new_nodes_list:
-            if new_node in open_list:
+            if new_node in close_list:
                 continue
             came_from[new_node] = current_node
             if new_node.station_name == end_node.station_name:
