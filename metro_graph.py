@@ -32,18 +32,18 @@ class Graph:
     def find_neihgbours(self, node, metrolines):
         neihgbours = []
         for line in node.station_id:
-            tempo = []
+            temporary_list = []
             for station in metrolines[line]:
                 if "Conn" in station or station.split(':')[1] in\
                  [self.start_node.station_name, self.end_node.station_name]:
-                    tempo.append(station)
-            for index, element in enumerate(tempo):
+                    temporary_list.append(station)
+            for index, element in enumerate(temporary_list):
                 try:
                     if node.station_name in element and index != 0:
-                        neihgbours.append(self.nodes_dict[tempo[index - 1].split(':')[1]])
-                        neihgbours.append(self.nodes_dict[tempo[index + 1].split(':')[1]])
+                        neihgbours.append(self.nodes_dict[temporary_list[index - 1].split(':')[1]])
+                        neihgbours.append(self.nodes_dict[temporary_list[index + 1].split(':')[1]])
                     elif node.station_name in element and index == 0:
-                        neihgbours.append(self.nodes_dict[tempo[index + 1].split(':')[1]])
+                        neihgbours.append(self.nodes_dict[temporary_list[index + 1].split(':')[1]])
                 except:
                     pass
         node.neihgbours = neihgbours
