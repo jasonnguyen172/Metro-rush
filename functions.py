@@ -18,6 +18,16 @@ def get_metrolines(lines):
     return metrolines
 
 
+def find_words(word_1, word_2, string):
+    """
+    Find word_1 and word_2 inside a string
+    """
+    result_1 = match(word_1, string).group(1)
+    result_2 = string.replace(word_2 + result_1 + ":", "")
+
+    return (result_1, result_2)
+
+
 def get_data(lines):
     """
     Get start station, end station and train number
@@ -29,13 +39,9 @@ def get_data(lines):
     try:
         for line in lines[::-1]:
             if match("START=(.*?):", line):
-                metro_line = match("START=(.*?):", line).group(1)
-                ID = line.replace("START=" + metro_line + ":", "")
-                start = (metro_line, ID)
+                start = find_words("START=(.*?):", "START=", line)
             elif match("END=(.*?):", line):
-                metro_line = match("END=(.*?):", line).group(1)
-                ID = line.replace("END=" + metro_line + ":", "")
-                end = (metro_line, ID)
+                end = find_words("END=(.*?):", "END=", line)
             elif line.startswith("TRAINS="):
                 trains_number = line.replace("TRAINS=", "")
         return start, end, trains_number
