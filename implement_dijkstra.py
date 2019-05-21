@@ -2,6 +2,27 @@ from functions import *
 from math import inf
 
 
+def calculate_cost(shortest_path):
+    '''
+    compute cost of a completed path
+    @param shortest_path: type: list -a list contains nodes ordered as
+                          completed shortest path
+    return cost: int number - cost of shortest path
+    '''
+    cost = get_edge(shortest_path[0], shortest_path[1])
+    previous_line = get_common_line(shortest_path[0], shortest_path[1])
+    for index, node in enumerate(shortest_path[2:], 2):
+        edge = get_edge(shortest_path[index-1], node)
+        try:
+            if get_common_line(shortest_path[index-1], node) != previous_line:
+                edge += 1
+            cost += edge
+        except TypeError:
+            print('the shortest path was lack of one or more nodes')
+            return
+    return cost
+
+
 def validate_new_nodes(start_node, current_node, new_nodes_list, close_list,
                        open_list, previous_node, cost_dict):
     '''
@@ -22,18 +43,15 @@ def validate_new_nodes(start_node, current_node, new_nodes_list, close_list,
         if new_node in close_list:
             continue
         if new_node in open_list:
-            path = track_back(start_node, new_node, previous_node)
-            # print([node.station_name for node in path])
-            # new_cost = get_edge(current_node, new_node) +\
-                       # cost_dict[current_node]
-            new_cost = calculate_cost(path)
-            if new_cost >= cost_dict[new_node]:
+            # path from start node to new node
+            path_to_new_node = track_back(start_node, new_node, previous_node)
+            if calculate_cost(path_to_new_node) >= cost_dict[new_node]:
                 continue
         # set information for validated new node
         previous_node[new_node] = current_node
-        # cost_dict[new_node] = get_edge(current_node, new_node) +\
-            # cost_dict[current_node]
-        cost_dict[new_node] = calculate_cost(track_back(start_node, new_node, previous_node))
+        cost_dict[new_node] = calculate_cost(track_back(start_node,
+                                                        new_node,
+                                                        previous_node))
         open_list.append(new_node)
     return open_list
 
@@ -89,7 +107,7 @@ def find_nearest(nodes_list, cost_dict):
     return nearest_index
 
 
-def implement_dijkstra(start_node, end_node, all_nodes_list, cost_dict):
+def execute_dijkstra(start_node, end_node, all_nodes_list, cost_dict):
     '''
     implement dijkstra's algorithm to find the shortest path between start and
     end node
@@ -117,7 +135,8 @@ def implement_dijkstra(start_node, end_node, all_nodes_list, cost_dict):
         if not new_nodes_list:
             continue
         # validate new nodes then add them to open_list
-        open_list = validate_new_nodes(start_node, current_node, new_nodes_list,
+        open_list = validate_new_nodes(start_node, current_node,
+                                       new_nodes_list,
                                        close_list, open_list, previous_node,
                                        cost_dict)
     return []
@@ -154,7 +173,7 @@ def get_nodes_list(nodes_dict):
     return all_nodes_list
 
 
-def find_all_path(start_node, end_node, nodes_dict):
+def find_all_paths(start_node, end_node, nodes_dict):
     '''
     find all of available paths from start node to end node without any common
     node
@@ -171,8 +190,8 @@ def find_all_path(start_node, end_node, nodes_dict):
     paths_list = []
     while True:
         cost_dict = init_cost_dict(start_node, all_nodes_list)
-        path = implement_dijkstra(start_node, end_node,
-                                  all_nodes_list, cost_dict)
+        path = execute_dijkstra(start_node, end_node,
+                                all_nodes_list, cost_dict)
         if path:
             paths_list.append(path)
             for node in path[1:-1]:
