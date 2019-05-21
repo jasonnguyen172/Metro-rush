@@ -138,11 +138,32 @@ def find_name_of_station(metrolines, position):
             return info_line.split(':')[1]
 
 
-def get_edge(src_conn_node, dest_conn_node):
+def get_common_line(source_node, dest_node):
+    for line in source_node.station_id:
+        if line in dest_node.station_id:
+            return line
+
+
+def get_edge(source_node, dest_node):
     '''
     calculate cost of edge between 2 node on one line
     '''
-    for line in src_conn_node.station_id:
-        if line in dest_conn_node.station_id:
-            return abs(int(src_conn_node.station_id[line]) -
-                       int(dest_conn_node.station_id[line]))
+    common_line = get_common_line(source_node, dest_node)
+    if common_line:
+        return abs(int(source_node.station_id[common_line]) -
+                   int(dest_node.station_id[common_line]))
+
+
+def calculate_cost(shortest_path):
+    cost = get_edge(shortest_path[0], shortest_path[1])
+    previous_line = get_common_line(shortest_path[0], shortest_path[1])
+    for index, node in enumerate(shortest_path[2:], 2):
+        edge = get_edge(shortest_path[index-1], node)
+        try:
+            if get_common_line(shortest_path[index-1], node) != previous_line:
+                edge += 1
+            cost += edge
+        except TypeError:
+            print('the shortest path was lack of one or more nodes')
+            return
+    return cost
