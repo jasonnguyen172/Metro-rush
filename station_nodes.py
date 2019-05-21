@@ -7,3 +7,12 @@ class Node:
         self.station_id = station_id
         self.connected = connected
         self.neihgbours = None
+        self.trains = []
+
+
+class Trains:
+
+    def __init__(self, graph, station_node, train_name, stay=   False):
+        self.train_name = train_name
+        self.stay = stay
+        station_node.trains.append(self)

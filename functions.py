@@ -138,43 +138,10 @@ def find_name_of_station(metrolines, position):
             return info_line.split(':')[1]
 
 
-# def get_conn_pts_dict(metrolines):
-#     '''
-#     Create a dictionary of connecting points
-#     '''
-#     conn_point_dict = {}
-#     for line_name in metrolines:
-#         conn_point_dict[line_name] = []
-#         for text_line in metrolines[line_name]:
-#             conn_point_dict[line_name] += [text_line] \
-#              if 'Conn' in text_line else []
-#     return conn_point_dict
-#
-#
-# def find_neihgbours(metrolines):
-#     '''
-#     @param metrolines: a dictionary contains all of info of stations and lines
-#                        which formed:
-#                        {text of line name: text of station info}
-#     '''
-#     conn_point_dict = get_conn_pts_dict(metrolines)
-#     neihgbours_dict = {}
-#     for line_name in conn_point_dict:
-#         for text_line in conn_point_dict[line_name]:
-#             id, node_name, link_line, connected = get_node_info(text_line)
-#             print(id, node_name, link_line, connected, sep=':')
-
-
-# def find_neihgbours_connected(src_node, nodes_list):
-#     print(src_node.station_id.keys())
-#     neihgbours_list = []
-#     for node in nodes_list:
-#         if node.connected is True and get_edge(src_node, node) is not None:
-#             neihgbours_list += [node]
-#     return neihgbours_list
-
-
 def get_edge(src_conn_node, dest_conn_node):
+    '''
+    calculate cost of edge between 2 node on one line
+    '''
     for line in src_conn_node.station_id:
         if line in dest_conn_node.station_id:
             return abs(int(src_conn_node.station_id[line]) -
