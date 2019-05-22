@@ -6,17 +6,18 @@ from re import match
 from implement_dijkstra import find_all_paths, calculate_cost
 
 
-def move_train(graph, trains_number, full_path):
+def move_train(graph, all_paths, distributions, trains_number):
     def modify_path(full_path):
         modified_path = list()
         for station in full_path:
             temporary = list()
             formated_station = station.split('(')[0]
             for train in graph.nodes_dict[formated_station].trains:
-                temporary.append(train.train_name)
-            if graph.nodes_dict[formated_station].trains:
+                if train != "BLOCKED":
+                    temporary.append(train.train_name)
+            if graph.nodes_dict[formated_station].trains and "BLOCKED" not in graph.nodes_dict[formated_station].trains:
                 modified_path.append(station + '-' + ','.join(temporary))
-        print('|'.join(modified_path))
+        return modified_path
 
     def move(full_path):
         for index, path in enumerate(full_path):
@@ -26,6 +27,8 @@ def move_train(graph, trains_number, full_path):
                 next_line = match(r"^.*?(\(.*?:)", full_path[index]).group(1)[1:-1]
                 current_trains = graph.nodes_dict[full_path[index].split('(')[0]].trains
                 previous_trains = graph.nodes_dict[full_path[index - 1].split('(')[0]].trains
+                if ("BLOCKED" in current_trains and len(current_trains) == 1) or ("BLOCKED" in previous_trains and len(previous_trains) == 1):
+                    continue
                 if (next_line == current_trains[0].current_line or current_trains[0].stay) and current_trains and (not previous_trains or graph.nodes_dict[full_path[index - 1].split('(')[0]] is graph.end_node):
                     moved_train = current_trains.pop(0)
                     previous_trains.append(moved_train)
@@ -38,9 +41,37 @@ def move_train(graph, trains_number, full_path):
             except IndexError:
                 pass
 
+    def over_limit(each_path, distribution):
+        count = []
+        for station in each_path[1:-1]:
+            station_name = match(r"(.*?\()", station).group(1)
+            station_trains = graph.nodes_dict[station_name[0:-1]].trains
+            if station_trains:
+                count += station_trains
+        if len(list(set(count))) >= distribution:
+            return True
+        return False
+
+    def get_merged_path():
+        merged_path = list()
+        for each_path in list_paths:
+            for station in each_path:
+                if station not in merged_path:
+                    merged_path.append(station)
+        return merged_path
+
+    list_paths = [get_full_path(graph, i) for i in all_paths]
+    merged_path = get_merged_path()
     while len(graph.end_node.trains) < trains_number:
-        move(full_path[::-1])
-        modify_path(full_path)
+        modified_path = []
+        for index, each_path in enumerate(list_paths):
+            second_station = match(r"(.*?\()", each_path[1]).group(1)
+            second_station_trains = graph.nodes_dict[second_station[0:-1]].trains
+            if over_limit(each_path, distributions[index]) and "BLOCKED" not in second_station_trains:
+                second_station_trains.append("BLOCKED")
+            move(each_path[::-1])
+        modified_path += modify_path(merged_path)
+        print('|'.join(modified_path))
 
 
 def get_full_path(graph, short_path):
@@ -94,7 +125,7 @@ def select_algorithm():
 
     # loop until a valid algorithm is selected
     while True:
-        algorithm = input("Please select algorithm ('1' or '2'): ")
+        algorithm = input("Please select an algorithm ('1' or '2'): ")
         # set '1' to be the default algorithm
         if not algorithm:
             return '1'
@@ -149,7 +180,7 @@ def distribute_train(lines, cost_list, trains_number):
         distributions[lowest_cost[0]] = (lowest_cost[1], lowest_cost[2], train)
     for key in distributions:
         distributions[key] = distributions[key][2]
-    return distributions
+    return [distributions[i] for i in sorted(distributions.keys())]
 
 
 def main():
@@ -163,12 +194,12 @@ def main():
     create_trains(int(trains_number), graph, start_pos[0])
     all_path = find_all_paths(graph.start_node, graph.end_node, graph.nodes_dict)
     if algorithm == "1":
-        full_path = get_full_path(graph, all_path[0])
-        move_train(graph, int(trains_number), full_path)
+        distributions = [int(trains_number), 0]
+        move_train(graph, [all_path[0]], distributions, int(trains_number))
     elif algorithm == "2":
-         cost_list = [calculate_cost(line) for line in all_path]
-         distributions = distribute_train(all_path, cost_list, int(trains_number))
-         print(distributions)
+        cost_list = [calculate_cost(line) for line in all_path]
+        distributions = distribute_train(all_path, cost_list, int(trains_number))
+        move_train(graph, all_path, distributions, int(trains_number))
 
 
 if __name__ == "__main__":

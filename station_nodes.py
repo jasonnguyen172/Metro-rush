@@ -12,7 +12,8 @@ class Node:
 
 class Trains:
 
-    def __init__(self, graph, station_node, train_name, stay=   False):
+    def __init__(self, current_line, station_node, train_name, stay=False):
         self.train_name = train_name
         self.stay = stay
+        self.current_line = current_line
         station_node.trains.append(self)
