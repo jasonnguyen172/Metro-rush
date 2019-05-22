@@ -16,7 +16,6 @@ def calculate_cost(shortest_path):
         try:
             if get_common_line(shortest_path[index-1], node) != previous_line:
                 edge += 1
-            print(edge)
             cost += edge
             previous_line = get_common_line(shortest_path[index-1], node)
         except TypeError:

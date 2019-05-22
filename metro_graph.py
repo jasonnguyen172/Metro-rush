@@ -1,5 +1,5 @@
-from station_nodes import *
-from functions import *
+from station_nodes import Node
+from functions import set_nodes, find_name_of_station
 
 
 class Graph:

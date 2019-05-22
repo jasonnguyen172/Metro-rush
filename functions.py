@@ -31,7 +31,6 @@ def find_words(word_1, word_2, string):
 def get_data(lines):
     """
     Get start station, end station and train number
-
     Return start: tuple(station ID, metro line)
     Return end: tuple(station ID, metro line)
     Return trains_number: train number
