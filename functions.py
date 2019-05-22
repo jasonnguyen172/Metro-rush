@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 from sys import stderr
 from re import match
-from station_nodes import *
+from station_nodes import Node
 
 
 def get_metrolines(lines):
