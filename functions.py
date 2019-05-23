@@ -127,6 +127,15 @@ def set_nodes(metrolines):
 
 
 def set_lines_dict(nodes_dict, metrolines):
+    '''
+    create a dictionary which formed: {line name: node_obj}
+    @param nodes_dict: dictionary contains node_name as key and value is
+                       node object
+    @param metrolines: a dictionary contains all of info of stations and lines
+                       which formed:
+                       {text of line name: text of station info}
+    @return lines_dict:  dictionary which formed: {line name: node_obj}
+    '''
     lines_dict = {}
     for line_name in metrolines:
         lines_dict[line_name] = []
@@ -165,6 +174,13 @@ def get_common_line(source_node, dest_node):
 
 
 def check_circular_line(metrolines):
+    '''
+    check and find out all of circular lines in graph
+    @param metrolines: a dictionary contains all of info of stations and lines
+                       which formed:
+                       {text of line name: text of station info}
+    @return circular_lines_list: list of all name of circular lines
+    '''
     circular_lines_list = []
     for line_name in metrolines:
         if metrolines[line_name][0].split(':')[1] ==\
@@ -174,6 +190,12 @@ def check_circular_line(metrolines):
 
 
 def get_interchange_dict(lines_dict):
+    '''
+    get a dictionary which show all of interchanges on a line
+    @param lines_dict: dictionary which formed: {line name: node_obj}
+    @return interchange_dict: dictionary which formed:
+                              {line name: interchange nodes}
+    '''
     interchange_dict = {}
     for line_name in lines_dict:
         interchange_dict[line_name] = []
