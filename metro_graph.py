@@ -34,7 +34,11 @@ class Graph:
         return self.nodes_dict[station_name]
 
     def find_neihgbours(self):
+        '''
+        find all of neihgbours of each interchange node in graph
+        '''
         for line_name in self.lines_dict:
+            # create interchange nodes list of each line
             temporary_list = []
             for node in self.lines_dict[line_name]:
                 if node.connected:
