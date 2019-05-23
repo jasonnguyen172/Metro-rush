@@ -1,5 +1,7 @@
 from station_nodes import Node
-from functions import set_nodes, find_name_of_station
+from functions import (set_nodes, find_name_of_station, set_lines_dict,
+                       get_interchange_dict, check_circular_line)
+
 
 
 class Graph:
@@ -9,8 +11,14 @@ class Graph:
     """
     def __init__(self, metrolines, start, end):
         self.nodes_dict = set_nodes(metrolines)  # {name:node_obj}
+        # store start, end nodes
         self.start_node = self.get_start_end_nodes(metrolines, start)
         self.end_node = self.get_start_end_nodes(metrolines, end)
+        # {line:[node,node]}
+        self.lines_dict = set_lines_dict(self.nodes_dict, metrolines)
+        # store all interchange nodes
+        self.interchange_dict = get_interchange_dict(self.lines_dict)
+        self.circular_lines_list = check_circular_line(metrolines)
 
     def get_start_end_nodes(self, metrolines, position):
         '''
@@ -26,43 +34,24 @@ class Graph:
         self.nodes_dict[station_name].connected = True
         return self.nodes_dict[station_name]
 
-    ############################################################################
-    #                                                                          #
-    #            Create attribute 'neihgbours' for node's instance             #
-    #                                                                          #
-    ############################################################################
-    def filter_connected_points(self, metrolines):
-        """
-        Control the finding
-        """
-        for line_name in self.nodes_dict:
-            if self.nodes_dict[line_name].connected:
-                # find neihgbours of a connected-station
-                self.find_neihgbours(self.nodes_dict[line_name], metrolines)
-
-    def find_neihgbours(self, node, metrolines):
-        """
-        Find all other nearest connected-stations of a station
-        Then store the result to station's attribute 'neihgbours'
-        """
-        neihgbours = []
-        for line in node.station_id:
+    def find_neihgbours(self):
+        for line_name in self.lines_dict:
             temporary_list = []
-            for station in metrolines[line]:
-                # check if the station is connected
-                if "Conn" in station or station.split(':')[1] in\
-                 [self.start_node.station_name, self.end_node.station_name]:
-                    temporary_list.append(station)
-            for index, element in enumerate(temporary_list):
-                try:
-                    # Add forward and backward stations
-                    if node.station_name in element and index != 0:
-                        neihgbours.append(self.nodes_dict[temporary_list[index - 1].split(':')[1]])
-                        neihgbours.append(self.nodes_dict[temporary_list[index + 1].split(':')[1]])
-                    # Only add forward stations
-                    elif node.station_name in element and index == 0:
-                        neihgbours.append(self.nodes_dict[temporary_list[index + 1].split(':')[1]])
-                except IndexError:
-                    pass
-        # change the attribute neihgbours of this station's object
-        node.neihgbours = neihgbours
+            for node in self.lines_dict[line_name]:
+                if node.connected:
+                    temporary_list.append(node)
+            if len(temporary_list) > 2:
+                for index, node in enumerate(temporary_list[1:-1], 1):
+                    node.neihgbours += [temporary_list[index - 1],
+                                        temporary_list[index + 1]]
+                if line_name in self.circular_lines_list:
+                    temporary_list[0].neihgbours += [temporary_list[-1],
+                                                     temporary_list[1]]
+                    temporary_list[-1].neihgbours += [temporary_list[-2],
+                                                      temporary_list[0]]
+                else:
+                    temporary_list[0].neihgbours += [temporary_list[1]]
+                    temporary_list[-1].neihgbours += [temporary_list[-2]]
+            elif len(temporary_list) == 2:
+                temporary_list[0].neihgbours += [temporary_list[1]]
+                temporary_list[-1].neihgbours += [temporary_list[-2]]
