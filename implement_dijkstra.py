@@ -7,6 +7,7 @@ def calculate_cost(shortest_path, graph):
     compute cost of a completed path
     @param shortest_path: type: list -a list contains nodes ordered as
                           completed shortest path
+    @param graph: object graph which init from Graph class
     return cost: int number - cost of shortest path
     '''
     cost = get_edge(shortest_path[0], shortest_path[1], graph)
@@ -30,6 +31,7 @@ def validate_new_nodes(graph, current_node, new_nodes_list, close_list,
                        open_list, previous_node, cost_dict):
     '''
     validate all new nodes if its the next considered nodes
+    @param graph: object graph which init from Graph class
     @parram current_node: the current considered node
     @parram new_nodes_list: a list contains all new nodes extanded from
                             current_node
@@ -117,8 +119,7 @@ def execute_dijkstra(graph, all_nodes_list, cost_dict):
     '''
     implement dijkstra's algorithm to find the shortest path between start and
     end node
-    @param start_node: the start station of trains
-    @param end_node: the destination of the trains
+    @param graph: object graph which init from Graph class
     @param all_nodes_list: a list of all nodes in graph
     @param cost_dict: a dictionary showing cost from start node to a particular
                       node, formed : {node_x: cost_x}
@@ -181,12 +182,7 @@ def find_all_paths(graph):
     '''
     find all of available paths from start node to end node without any common
     node
-    @param start_node: the start station of trains
-    @param end_node: the destination of the trains
-    @param nodes_dict: dictionary contains node_name as key and value is
-                       node object
-    @param cost_dict: a dictionary showing cost from start node to a particular
-                      node, formed : {node_x: cost_x}
+    @param graph: object graph which init from Graph class
     @return paths_list: a list contains all of paths which are lists contains
                     nodes ordered as shortest path
     '''
@@ -208,6 +204,12 @@ def find_all_paths(graph):
 
 
 def format_route(finished_route):
+    '''
+    format the route from objects to text of station info for print out
+    @param finished_route: a list contains all of nodes ordered as route
+    @return formated_route : a list contains all of station name
+                             ordered as route
+    '''
     formated_route = []
     for index, node in enumerate(finished_route[:-1]):
         if node.connected and index > 0:
@@ -221,12 +223,26 @@ def format_route(finished_route):
 
 
 def format_node(node, line):
-    formated_node = node.station_name + \
-                    '(' + line + ':' + str(node.station_id[line]) + ')'
+    '''
+    format a node route from objects to text of station info
+    @param node: the considered node
+    @param line: current line of node
+    @return formated_node : type: string - text of station info
+    '''
+    formated_node = node.station_name +\
+        '(' + line + ':' + str(node.station_id[line]) + ')'
     return formated_node
 
 
 def get_route_last_to_first(last_node, first_node, line, graph):
+    '''
+    get the route as ordered nodes from last interchange to first interchange
+    in case of circular line.
+    @param last_node: the last interchange on circular line
+    @param first_node: the first interchange on circular line
+    @return: a list contains nodes ordered as route from last interchange
+             to first interchange in circular line
+    '''
     last_node_index = last_node.station_id[line] - 1
     first_node_index = first_node.station_id[line] - 1
     lines_list = graph.lines_dict[line]
@@ -237,10 +253,28 @@ def get_route_last_to_first(last_node, first_node, line, graph):
 
 
 def get_route_first_to_last(last_node, first_node, line, graph):
+    '''
+    get the route as ordered nodes from first interchange to last interchange
+    in case of circular line.
+    @param last_node: the last interchange on circular line
+    @param first_node: the first interchange on circular line
+    @return: a list contains nodes ordered as route from first interchange to
+            last interchange in case of circular line.
+    '''
     return get_route_last_to_first(last_node, first_node, line, graph)[::-1]
 
 
 def check_cirle_move(source_node, dest_node, graph):
+    '''
+    checking if moving from source interchange to destination interchange
+    is moving from first interchange to last interchange in case of
+    circular line.
+    @param source_node: type - an object : the first node
+    @param dest_node: type - an object : the second node
+    @param graph: object graph which init from Graph class
+    @return: True if circle move
+             False if not circle move
+    '''
     line = get_common_line(source_node, dest_node)
     interchange_list = graph.interchange_dict[line]
     if line in graph.circular_lines_list:
@@ -253,6 +287,13 @@ def check_cirle_move(source_node, dest_node, graph):
 
 
 def get_info_of_source_node_dest_node(source_node, dest_node):
+    '''
+    get some information of source node and destination node
+    @param source_node: type - an object : the first node
+    @param dest_node: type - an object : the second node
+    @return: a tuple formed (source node index, destination node index,
+    common line)
+    '''
     line = get_common_line(source_node, dest_node)
     source_node_index = source_node.station_id[line] - 1
     dest_node_index = dest_node.station_id[line] - 1
@@ -260,6 +301,14 @@ def get_info_of_source_node_dest_node(source_node, dest_node):
 
 
 def get_route_of_cirle_move(source_node, dest_node, graph, all_nodes_list):
+    '''
+    get the route in case of circle move as a list of ordered nodes as a route
+    @param source_node: type - an object : the first node
+    @param dest_node: type - an object : the second node
+    @param graph: object graph which init from Graph class
+    @param all_nodes_list: a list of all nodes in graph
+    @return: a list of ordered nodes as a route
+    '''
     source_node_index, dest_node_index, line =\
         get_info_of_source_node_dest_node(source_node, dest_node)
     interchange_list = graph.interchange_dict[line]
@@ -270,7 +319,6 @@ def get_route_of_cirle_move(source_node, dest_node, graph, all_nodes_list):
         last_node, first_node = dest_node, source_node
         route = get_route_first_to_last(last_node, first_node, line, graph)
     if len(interchange_list) == 2:
-
         normal_route = get_route_normal_move(source_node, dest_node,
                                              graph, all_nodes_list)
         if len(route) > len(normal_route):
@@ -284,6 +332,14 @@ def get_route_of_cirle_move(source_node, dest_node, graph, all_nodes_list):
 
 
 def get_route_normal_move(source_node, dest_node, graph, all_nodes_list):
+    '''
+    get the route in case of normal move as a list of ordered nodes as a route
+    @param source_node: type - an object : the first node
+    @param dest_node: type - an object : the second node
+    @param graph: object graph which init from Graph class
+    @param all_nodes_list: a list of all nodes in graph
+    @return: a list of ordered nodes as a route
+    '''
     route = [source_node]
     line = get_common_line(source_node, dest_node)
     step = -1
@@ -302,7 +358,14 @@ def get_route_normal_move(source_node, dest_node, graph, all_nodes_list):
 
 def get_finished_route_two_nodes(source_node, dest_node, graph,
                                  all_nodes_list):
-
+    '''
+    get the route between of two interchanges
+    @param source_node: type - an object : the first node
+    @param dest_node: type - an object : the second node
+    @param graph: object graph which init from Graph class
+    @param all_nodes_list: a list of all nodes in graph
+    @return: a list of ordered nodes as a route
+    '''
     if check_cirle_move(source_node, dest_node, graph):
 
         return get_route_of_cirle_move(source_node, dest_node, graph,
@@ -313,6 +376,15 @@ def get_finished_route_two_nodes(source_node, dest_node, graph,
 
 
 def get_finished_route(graph, temporary_route, all_nodes_list):
+    '''
+    get the route from a list of temporary route(which contains
+    interchange nodes)
+    @param source_node: type - an object : the first node
+    @param dest_node: type - an object : the second node
+    @param graph: object graph which init from Graph class
+    @param all_nodes_list: a list of all nodes in graph
+    @return: a list of ordered nodes as a finish route
+    '''
     finished_route = []
     for index, node in enumerate(temporary_route[1:], 1):
         finished_route += get_finished_route_two_nodes(
