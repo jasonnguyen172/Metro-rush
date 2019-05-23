@@ -238,7 +238,7 @@ def main():
 
     """ Reading data and store data """
     # get file name from the user's input
-    file_name = get_file_name()
+    file_name, gui = get_file_name()
     # read file into a list of lines
     lines = read_file(file_name)
     # get start, end position and trains_number from file
@@ -275,7 +275,6 @@ def main():
                               distributions, int(trains_number))
 
     """  Display GUI """
-    gui = True
     if gui and data_gui:
         display(graph, data_gui)
     elif gui:

@@ -7,7 +7,7 @@ from station_nodes import Node
 def get_metrolines(lines):
     """
     Get metrolines from list of lines
-    
+
     Return metrolines: dict {metroline:[stations]}
     """
     metrolines = {}
@@ -74,11 +74,15 @@ def read_file(file_name):
 def get_file_name():
     """
     Get the file name from user's input
+
+    Return file name and user's GUI option
     """
     parser = ArgumentParser()
     parser.add_argument('file_name', metavar='file_name')
+    parser.add_argument('--gui', action='store_true', default=False,
+                    help='visualise the algorithm in GUI mode')
     args = parser.parse_args()
-    return args.file_name
+    return args.file_name, args.gui
 
 
 def set_node_info(node_dict, line, id, node_name, connected):
