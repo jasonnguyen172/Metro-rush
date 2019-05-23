@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 from functions import get_file_name, read_file, get_data, get_metrolines
 from metro_graph import Graph
-from station_nodes import Trains
+from station_nodes import Train
 from collections import OrderedDict
 from re import match
+from GUI import display
 from implement_dijkstra import find_all_paths, calculate_cost
 
 
@@ -21,7 +22,7 @@ def move_train(graph, all_paths, distributions, trains_number):
 
         Return modified_path: a list of stations which is ready to be printed
         """
-        modified_path = list()
+        modified_path, gui_data = list(), list()
         for station in full_path:
             temporary = list()
             formated_station = station.split('(')[0]
@@ -32,7 +33,8 @@ def move_train(graph, all_paths, distributions, trains_number):
             # change form
             if graph.nodes_dict[formated_station].trains and "BLOCKED" not in graph.nodes_dict[formated_station].trains:
                 modified_path.append(station + '-' + ','.join(temporary))
-        return modified_path
+                gui_data.append(station)
+        return (modified_path, gui_data)
 
     def move(full_path):
         """
@@ -107,9 +109,10 @@ def move_train(graph, all_paths, distributions, trains_number):
         return merged_path
 
     # create a list of full path from a list of raw paths
-    list_paths = [get_full_path(graph, i) for i in all_paths]
+    list_paths = find_all_paths(graph)[1]
     # merge all possible paths to one only path
     merged_path = get_merged_path()
+    data_gui = list()
     while len(graph.end_node.trains) < trains_number:
         modified_path = []
         for index, each_path in enumerate(list_paths):
@@ -120,70 +123,11 @@ def move_train(graph, all_paths, distributions, trains_number):
                 second_station_trains.append("BLOCKED")
             move(each_path[::-1])
         # print result
-        modified_path += modify_path(merged_path)
+        modified_path += modify_path(merged_path)[0]
         print('|'.join(modified_path))
-
-
-def get_full_path(graph, short_path):
-    """
-    From a 'raw path' which is in form a list of connected point only
-    --> Find a fully path
-
-    @param short_path: raw path
-
-    return full path, which a list of all station that trains will run through
-    """
-    def get_temporary_path(node, station, temporary_path):
-        """
-        Find station in graph that matchs the @param station
-        Add it to the temporary list
-        """
-        for key in graph.nodes_dict[node].station_id:
-            if key == line and graph.nodes_dict[node].station_id[key] == station:
-                temporary_path.append(node + '(' + line + ':'+ str(station) + ')')
-
-    def add_station(full_path, line, stations):
-        """
-        Generate full path
-        """
-        temporary_path = list()
-        for station in stations:
-            for node in graph.nodes_dict:
-                get_temporary_path(node, station, temporary_path)
-        full_path += temporary_path
-
-    def find_movement_stream(list_connected_station, index, full_path):
-        """
-        Base on the direction of the train's movement (upstream or downstream)
-        reverse list order if train moves downstream (from high ID --> low ID)
-        """
-        stations = list()
-        for line in list_connected_station[index]:
-            current_station = list_connected_station[index]
-            next_station = list_connected_station[index + 1]
-            # upstream, from low ID --> high ID
-            if line in next_station and next_station[line] - current_station[line] > 0:
-                # keep the order
-                stations += [number for number in range(current_station[line], next_station[line] + 1)]
-                return line, stations
-            # downstream
-            elif line in next_station:
-                # reverse the order
-                stations += [number for number in range(next_station[line], current_station[line] + 1)][::-1]
-                return line, stations
-
-    full_path = list()
-    # turn list of objects into list of object's attribute ID
-    list_connected_station = [node.station_id for node in short_path]
-    for index, node in enumerate(list_connected_station):
-        try:
-            # add stations to the list of full path
-            line, stations = find_movement_stream(list_connected_station, index, full_path)
-            add_station(full_path, line, stations)
-        except IndexError:
-            pass
-    # remove duplicate stations
-    return list(OrderedDict.fromkeys(full_path))
+        # return data for displaying gui purpose
+        data_gui.append(modify_path(merged_path)[1])
+    return data_gui
 
 
 def create_trains(trains_number, graph, start_line):
@@ -192,7 +136,7 @@ def create_trains(trains_number, graph, start_line):
     """
     for number in range (1, trains_number + 1):
         train_name = 'T' + str(number)
-        train = Trains(start_line, graph.start_node, train_name)
+        train = Train(start_line, graph.start_node, train_name)
 
 
 def select_algorithm():
@@ -293,26 +237,33 @@ def main():
     ############################ Creating objects ##############################
     graph = Graph(metrolines, start_position, end_position)
     # get all connected points
-    graph.filter_connected_points(metrolines)
+    graph.find_neihgbours()
     # create objects of class Trains
     create_trains(int(trains_number), graph, start_position[0])
 
 
     ######################### Find path and move trains ########################
     # use Dijkstra to fill all possible path (that doesn't pass by each other)
-    all_path = find_all_paths(graph.start_node, graph.end_node, graph.nodes_dict)
+    all_path = find_all_paths(graph)[0]
     #Run algorithm depending on user's choice
     if algorithm == "1":
         # distribute all train to the shortest path
         distributions = [int(trains_number), 0]
-        move_train(graph, [all_path[0]], distributions, int(trains_number))
+        data_gui = move_train(graph, [all_path[0]], distributions, int(trains_number))
     elif algorithm == "2":
         # calcul total cost of each path
-        cost_list = [calculate_cost(line) for line in all_path]
+        cost_list = [calculate_cost(line, graph) for line in all_path]
         # calcul number of trains for each path before moving them
         distributions = distribute_train(all_path, cost_list, int(trains_number))
-        move_train(graph, all_path, distributions, int(trains_number))
+        data_gui = move_train(graph, all_path, distributions, int(trains_number))
 
+
+    #############################  Display GUI #################################
+    gui = True
+    if gui and data_gui:
+        display(graph, data_gui)
+    elif gui:
+        print("NO PATH FOUND: cannot run GUI")
 
 if __name__ == "__main__":
     main()
