@@ -3,7 +3,6 @@ from functions import (set_nodes, find_name_of_station, set_lines_dict,
                        get_interchange_dict, check_circular_line)
 
 
-
 class Graph:
     """
     Store all informations of the metro

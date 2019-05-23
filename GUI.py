@@ -32,20 +32,22 @@ class GUI(pyglet.window.Window):
         """
         self.clear()
 
-        ####################### Draw lines and stations ########################
+        """ Draw lines and stations """
         for data in self.coordinate_data:
             temp = self.coordinate_data[data]
             # draw line
-            pyglet.graphics.draw(2, pyglet.gl.GL_LINES,('v2i', (temp[0], temp[1], temp[2], temp[3])),('c3B', (240, 128, 128, 240, 128, 128)))
+            pyglet.graphics.draw(2, pyglet.gl.GL_LINES,
+                                 ('v2i', (temp[0], temp[1], temp[2], temp[3])),
+                                 ('c3B', (240, 128, 128, 240, 128, 128)))
             # draw line's name
             temp[4].draw()
             # draw stations on line
             for index, sprite in enumerate(temp[5]):
                 sprite.draw()
                 label = pyglet.text.Label(temp[6][index],
-                                  font_name='Times New Roman',
-                                  font_size=12,
-                                  anchor_x='right', anchor_y='top')
+                                          font_name='Times New Roman',
+                                          font_size=12,
+                                          anchor_x='right', anchor_y='top')
                 # draw station's name with an angle of 50 degree
                 glPushMatrix()
                 glLoadIdentity()
@@ -55,20 +57,25 @@ class GUI(pyglet.window.Window):
                 glRotatef(-50.0, 0.0, 0.0, 1.0)
                 glPopMatrix()
 
-        ####################### Draw connected lines ###########################
+        """ Draw connected lines """
         for node in self.all_nodes:
             if len(self.all_nodes[node].coordinate) > 1:
-                for index, coordinate in enumerate(self.all_nodes[node].coordinate):
+                coordinates = self.all_nodes[node].coordinate
+                for index, coordinate in enumerate(coordinates):
                     # find and match connected stations by a grey line
                     try:
-                        current = self.all_nodes[node].coordinate[index]
-                        next = self.all_nodes[node].coordinate[index + 1]
+                        current = coordinates[index]
+                        next = coordinates[index + 1]
                         # draw grey lines
-                        pyglet.graphics.draw(2, pyglet.gl.GL_LINES,('v2i', (current[0] + 6, current[1] + 6, next[0] + 6, next[1] + 6)),('c3B', (54, 54, 54, 54, 54, 54)))
+                        tuple1 = (current[0] + 6, current[1] + 6,
+                                  next[0] + 6, next[1] + 6)
+                        tuple2 = (54, 54, 54, 54, 54, 54)
+                        pyglet.graphics.draw(2, pyglet.gl.GL_LINES,
+                                             ('v2i', tuple1), ('c3B', tuple2))
                     except IndexError:
                         pass
 
-        ####################### Draw start-end station #########################
+        """ Draw start-end station """
         # find start/end station's name/line, in order to get it's coordinates
         end_station = self.data_gui[-1][-1].split("(")[0]
         start_station = self.data_gui[0][0].split("(")[0]
@@ -77,29 +84,35 @@ class GUI(pyglet.window.Window):
         (end_x, end_y) = self.station_data[end_line][end_station]
         (start_x, start_y) = self.station_data[start_line][start_station]
         # draw symbols over those stations
-        for x_position, y_position, image in [(end_x - 6, end_y - 30, self.end_image),
-                                              (start_x - 6, start_y + 20, self.start_image)]:
+        for x_position, y_position, image in [(end_x - 6,
+                                               end_y - 30, self.end_image),
+                                              (start_x - 6, start_y + 20,
+                                               self.start_image)]:
             pyglet.sprite.Sprite(image, x=x_position, y=y_position).draw()
 
-        ########################### Draws trains ###############################
+        """ Draws trains """
         for line in self.data_gui[self.current_turn]:
             # get station's name and line
             station_name = line.split("(")[0]
             station_line = (line.split("(")[1]).split(":")[0]
             # get station's coordinate
-            (station_x, station_y) = self.station_data[station_line][station_name]
+            (station_x,
+             station_y) = self.station_data[station_line][station_name]
             # draw trains
-            pyglet.sprite.Sprite(self.train_image, x=station_x - 6, y=station_y - 6).draw()
+            sprite = pyglet.sprite.Sprite(self.train_image,
+                                          x=station_x - 6, y=station_y - 6)
+            sprite.draw()
 
-    ########################## Control user's action ###########################
+    """ Control user's action """
     def on_key_press(self, symbol, modifiers):
         """
         Go next/ previous turn depend on key pressed
         """
         if symbol == key.LEFT and (self.current_turn - 1 >= 0):
             self.current_turn -= 1
-        elif symbol == key.RIGHT and (self.current_turn + 1 < len(self.data_gui)):
-            self.current_turn += 1
+        elif symbol == key.RIGHT:
+            if self.current_turn + 1 < len(self.data_gui):
+                self.current_turn += 1
 
     def on_mouse_press(self, x, y, button, modifiers):
         """
@@ -107,8 +120,9 @@ class GUI(pyglet.window.Window):
         """
         if button == mouse.RIGHT and (self.current_turn - 1 >= 0):
             self.current_turn -= 1
-        elif button == mouse.LEFT and (self.current_turn + 1 < len(self.data_gui)):
-            self.current_turn += 1
+        elif button == mouse.LEFT:
+            if self.current_turn + 1 < len(self.data_gui):
+                self.current_turn += 1
 
 
 def generate_lines_coordinate(graph, screen, gui):
@@ -126,7 +140,8 @@ def generate_lines_coordinate(graph, screen, gui):
                 image = pyglet.resource.image("interchange.png")
             # set coordinate automatically base on station index
             # and screen size
-            sprite_x = int(((screen.width*0.85) / station_number) * index + start_x_coordinate)
+            sprite_x = int(((screen.width*0.85) / station_number)
+                           * index + start_x_coordinate)
             sprite_y = start_y_coordinate - 6
             # store the sprite's coordinates if the station already the dict
             if station in gui.all_nodes:
@@ -134,7 +149,7 @@ def generate_lines_coordinate(graph, screen, gui):
             # else, update
             else:
                 gui.all_nodes[station] = Node_coordinate((sprite_x, sprite_y))
-            sprite = pyglet.sprite.Sprite(image, x=sprite_x , y=sprite_y)
+            sprite = pyglet.sprite.Sprite(image, x=sprite_x, y=sprite_y)
             # store all station's sprites
             list_sprite.append(sprite)
             # store all station's names
@@ -143,7 +158,8 @@ def generate_lines_coordinate(graph, screen, gui):
             positions.append((sprite_x, sprite_y))
             # store the coordinates if the station already the dict
             if line not in station_data:
-                station_data[line] = {station.station_name:(sprite_x, sprite_y)}
+                station_data[line] = {station.station_name: (sprite_x,
+                                                             sprite_y)}
             else:
                 station_data[line][station.station_name] = (sprite_x, sprite_y)
 
@@ -158,14 +174,16 @@ def generate_lines_coordinate(graph, screen, gui):
         # automatically generate start/ end point of a line
         # in oder to draw that line
         start_x_coordinate = int(screen.width*0.1)
-        start_y_coordinate = int((screen.height*0.9 / line_number) * (index + 1.5))
+        start_y_coordinate = int((screen.height*0.9 / line_number) *
+                                 (index + 1.5))
         end_x_coordinate = int(screen.width*0.95)
         # line's name
         label = pyglet.text.Label(line,
-                          font_name='Times New Roman',
-                          font_size=15,
-                          x=screen.width*0.05, y=start_y_coordinate,
-                          anchor_x='center', anchor_y='center', color=(0, 206, 209, 255))
+                                  font_name='Times New Roman',
+                                  font_size=15,
+                                  x=screen.width*0.05, y=start_y_coordinate,
+                                  anchor_x='center', anchor_y='center',
+                                  color=(0, 206, 209, 255))
         list_sprite, stations, positions = list(), list(), list()
         # find the number of station
         station_number = len(graph.lines_dict[line])
