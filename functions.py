@@ -31,6 +31,7 @@ def find_words(word_1, word_2, string):
 def get_data(lines):
     """
     Get start station, end station and train number
+
     Return start: tuple(station ID, metro line)
     Return end: tuple(station ID, metro line)
     Return trains_number: train number
@@ -84,7 +85,10 @@ def set_node_info(node_dict, line, id, node_name, connected):
     if node_name not in node_dict:
         node_dict[node_name] = Node(node_name, {line: id}, connected)
     else:
-        node_dict[node_name].station_id[line] = id
+        if connected:
+            node_dict[node_name].station_id[line] = id
+        else:
+            pass
 
 
 def get_node_info(info_line):
@@ -95,7 +99,7 @@ def get_node_info(info_line):
              node_name - name of station
              connected - boolen value, True if the station is connecting point
     '''
-    conn, link_line, connected = None, None, True
+    link_line, connected = None, True
     if 'Conn' in info_line:
         id, node_name, conn, link_line = info_line.split(':')
         link_line = link_line[1:]
@@ -120,6 +124,16 @@ def set_nodes(metrolines):
             id, node_name, link_line, connected = get_node_info(info_line)
             set_node_info(node_dict, line, id, node_name, connected)
     return node_dict
+
+
+def set_lines_dict(nodes_dict, metrolines):
+    lines_dict = {}
+    for line_name in metrolines:
+        lines_dict[line_name] = []
+        for text_line in metrolines[line_name]:
+            station_name = text_line.split(':')[1]
+            lines_dict[line_name].append(nodes_dict[station_name])
+    return lines_dict
 
 
 def find_name_of_station(metrolines, position):
@@ -150,15 +164,53 @@ def get_common_line(source_node, dest_node):
             return line
 
 
-def get_edge(source_node, dest_node):
+def check_circular_line(metrolines):
+    circular_lines_list = []
+    for line_name in metrolines:
+        if metrolines[line_name][0].split(':')[1] ==\
+           metrolines[line_name][-1].split(':')[1]:
+            circular_lines_list.append(line_name)
+    return circular_lines_list
+
+
+def get_interchange_dict(lines_dict):
+    interchange_dict = {}
+    for line_name in lines_dict:
+        interchange_dict[line_name] = []
+        for node in lines_dict[line_name]:
+            if node.connected:
+                interchange_dict[line_name].append(node)
+    return interchange_dict
+
+
+def get_edge(source_node, dest_node, graph):
     '''
-    calculate cost of edge between 2 node on one line
+    calculate cost of edge from a node to the nearest node
     @param source_node: type - an object : the first node
     @param dest_node: type - an object : the second node
     @return: type - int number - length between 2 nodes
              None if 2 nodes are not on one line
     '''
+    if dest_node not in source_node.neihgbours:
+        print('2 nodes were not neighboured')
+        return
     common_line = get_common_line(source_node, dest_node)
-    if common_line:
-        return abs(int(source_node.station_id[common_line]) -
-                   int(dest_node.station_id[common_line]))
+    source_id = source_node.station_id[common_line]
+    dest_id = dest_node.station_id[common_line]
+    length_line = len(graph.lines_dict[common_line])
+    interchange_list = graph.interchange_dict[common_line]
+    # if there is more than 2 interchanges in line
+    if len(interchange_list) > 2:
+        # if moving from the first interchange node to the last interchange
+        # node directly in circular line, or backward
+        if abs(interchange_list.index(source_node) -
+               interchange_list.index(dest_node)) > 1:
+                return abs(length_line - max(source_id, dest_id) +
+                           min(source_id, dest_id) - 1)
+        else:
+            return abs(source_id - dest_id)
+    # get the smallest cost if there is just 2 interchanges in line
+    else:
+        return min(abs(source_id - dest_id),
+                   abs(length_line - max(source_id, dest_id) +
+                   min(source_id, dest_id) - 1))
