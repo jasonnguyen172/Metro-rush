@@ -31,7 +31,8 @@ def move_train(graph, all_paths, distributions, trains_number):
                 if train != "BLOCKED":
                     temporary.append(train.train_name)
             # change form
-            if graph.nodes_dict[formated_station].trains and "BLOCKED" not in graph.nodes_dict[formated_station].trains:
+            if graph.nodes_dict[formated_station].trains and\
+               "BLOCKED" not in graph.nodes_dict[formated_station].trains:
                 modified_path.append(station + '-' + ','.join(temporary))
                 gui_data.append(station)
         return (modified_path, gui_data)
@@ -44,19 +45,28 @@ def move_train(graph, all_paths, distributions, trains_number):
         """
         for index, path in enumerate(full_path):
             try:
-                if index -1 < 0 and index - 2 < 0:
+                if index - 1 < 0 and index - 2 < 0:
                     continue
-                next_line = match(r"^.*?(\(.*?:)", full_path[index]).group(1)[1:-1]
-                current_trains = graph.nodes_dict[full_path[index].split('(')[0]].trains
-                previous_trains = graph.nodes_dict[full_path[index - 1].split('(')[0]].trains
+                pattern = r"^.*?(\(.*?:)"
+                next_line = match(pattern, full_path[index]).group(1)[1:-1]
+                current = graph.nodes_dict[full_path[index].split('(')[0]]
+                previous = graph.nodes_dict[full_path[index - 1].split('(')[0]]
+                current_trains = current.trains
+                previous_trains = previous.trains
                 # dont make any move on a station that is blocked
-                if ("BLOCKED" in current_trains and len(current_trains) == 1) or ("BLOCKED" in previous_trains and len(previous_trains) == 1):
+                if "BLOCKED" in current_trains and len(current_trains) == 1:
+                    continue
+                if "BLOCKED" in previous_trains and len(previous_trains) == 1:
                     continue
                 # IF current train's already stopped for one turn
                 # OR there is no line change
                 # AND current station has train
                 # AND next station doesn't have train
-                if (next_line == current_trains[0].current_line or current_trains[0].stay) and current_trains and (not previous_trains or graph.nodes_dict[full_path[index - 1].split('(')[0]] is graph.end_node):
+                if ((next_line == current_trains[0].current_line
+                    or current_trains[0].stay) and current_trains and
+                    (not previous_trains or
+                     graph.nodes_dict[full_path[index - 1].split('(')[0]]
+                     is graph.end_node)):
                     # remove from current station
                     moved_train = current_trains.pop(0)
                     # move to next station
@@ -66,7 +76,11 @@ def move_train(graph, all_paths, distributions, trains_number):
                     # store the data of current line
                     moved_train.current_line = next_line
                 # There is a line change
-                elif (next_line != current_trains[0].current_line) and current_trains and (not previous_trains or graph.nodes_dict[full_path[index - 1].split('(')[0]] is graph.end_node):
+                elif (next_line != current_trains[0].current_line and
+                      current_trains and
+                      (not previous_trains or
+                       graph.nodes_dict[full_path[index - 1].split('(')[0]]
+                       is graph.end_node)):
                     moved_train = current_trains[0]
                     # freeze the train
                     moved_train.stay = True
@@ -117,9 +131,11 @@ def move_train(graph, all_paths, distributions, trains_number):
         modified_path = []
         for index, each_path in enumerate(list_paths):
             second_station = match(r"(.*?\()", each_path[1]).group(1)
-            second_station_trains = graph.nodes_dict[second_station[0:-1]].trains
+            this_station = graph.nodes_dict[second_station[0:-1]]
+            second_station_trains = this_station.trains
             # block the path by blocking the second station of that path
-            if over_limit(each_path, distributions[index]) and "BLOCKED" not in second_station_trains:
+            if over_limit(each_path, distributions[index]) \
+               and "BLOCKED" not in second_station_trains:
                 second_station_trains.append("BLOCKED")
             move(each_path[::-1])
         # print result
@@ -134,7 +150,7 @@ def create_trains(trains_number, graph, start_line):
     """
     Create as many objects for class Trains as number of trains
     """
-    for number in range (1, trains_number + 1):
+    for number in range(1, trains_number + 1):
         train_name = 'T' + str(number)
         train = Train(start_line, graph.start_node, train_name)
 
@@ -145,7 +161,7 @@ def select_algorithm():
     """
     print("Please select one of these algorithms:")
     print("    1. One path for all trains (default)")
-    print("    2. Multiple paths with improved heuristic (generally 10-30% better)")
+    print("    2. Multiple paths with improved heuristic (10-30% better)")
     print("If none is selected, default option will be run automatically.")
 
     # loop until a valid algorithm is selected
@@ -220,7 +236,7 @@ def distribute_train(lines, cost_list, trains_number):
 
 def main():
 
-    ######################## Reading data and store data #######################
+    """ Reading data and store data """
     # get file name from the user's input
     file_name = get_file_name()
     # read file into a list of lines
@@ -233,37 +249,38 @@ def main():
     metrolines = get_metrolines(lines)
     # create objects of class Graph from raw data
 
-
-    ############################ Creating objects ##############################
+    """ Creating objects """
     graph = Graph(metrolines, start_position, end_position)
     # get all connected points
     graph.find_neihgbours()
     # create objects of class Trains
     create_trains(int(trains_number), graph, start_position[0])
 
-
-    ######################### Find path and move trains ########################
+    """ Find path and move trains """
     # use Dijkstra to fill all possible path (that doesn't pass by each other)
     all_path = find_all_paths(graph)[0]
-    #Run algorithm depending on user's choice
+    # run algorithm depending on user's choice
     if algorithm == "1":
         # distribute all train to the shortest path
         distributions = [int(trains_number), 0]
-        data_gui = move_train(graph, [all_path[0]], distributions, int(trains_number))
+        data_gui = move_train(graph, [all_path[0]],
+                              distributions, int(trains_number))
     elif algorithm == "2":
         # calcul total cost of each path
         cost_list = [calculate_cost(line, graph) for line in all_path]
         # calcul number of trains for each path before moving them
-        distributions = distribute_train(all_path, cost_list, int(trains_number))
-        data_gui = move_train(graph, all_path, distributions, int(trains_number))
+        distributions = distribute_train(all_path, cost_list,
+                                         int(trains_number))
+        data_gui = move_train(graph, all_path,
+                              distributions, int(trains_number))
 
-
-    #############################  Display GUI #################################
+    """  Display GUI """
     gui = True
     if gui and data_gui:
         display(graph, data_gui)
     elif gui:
         print("NO PATH FOUND: cannot run GUI")
+
 
 if __name__ == "__main__":
     main()
