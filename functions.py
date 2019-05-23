@@ -5,12 +5,19 @@ from station_nodes import Node
 
 
 def get_metrolines(lines):
+    """
+    Get metrolines from list of lines
+    
+    Return metrolines: dict {metroline:[stations]}
+    """
     metrolines = {}
     metroline = None
     for index, line in enumerate(lines):
         if line.startswith("#"):
+            # remove symbol sharp
             metroline = line.replace("#", "")
             metrolines[metroline] = []
+        # ignore start, end, and trains lines
         elif not line.startswith("START=") and\
                 not line.startswith("END=") and\
                 not line.startswith("TRAINS") and line:
@@ -51,6 +58,9 @@ def get_data(lines):
 
 
 def read_file(file_name):
+    """
+    Read file into a list of lines
+    """
     try:
         open_file = open(file_name, "r")
         lines = open_file.read().splitlines()
